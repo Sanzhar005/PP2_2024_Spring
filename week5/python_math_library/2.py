@@ -1,0 +1,5 @@
+a = float(input("a = "))
+b = float(input("b = "))
+h = float(input("h = "))
+area = float(((a + b)/2) * h)
+print("Area:", area)
