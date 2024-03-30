@@ -5,13 +5,13 @@ from datetime import datetime
 pygame.init()
 screen = pygame.display.set_mode((650, 450))
 window_title = pygame.display.set_caption("mickey mouse clock")
-icon = pygame.display.set_icon(pygame.image.load(r"C:\Users\sanch\Downloads\mickeyclock.jpg"))
+icon = pygame.display.set_icon(pygame.image.load(r"C:\Users\sanch\Downloads\mainclock.png"))
 clock = pygame.time.Clock()
 
 # loading the images 
-bg_surf = pygame.image.load(r"C:\Users\sanch\Downloads\mickeyclock.jpg")
-leftarm_surf = pygame.image.load(r"C:\Users\sanch\Downloads\leftarm1.png")
-rightarm_surf = pygame.image.load(r"C:\Users\sanch\Downloads\rightarm1.png")
+bg_surf = pygame.image.load(r"C:\Users\sanch\Downloads\mainclock.png")
+leftarm_surf = pygame.image.load(r"C:\Users\sanch\Downloads\leftarm.png")
+rightarm_surf = pygame.image.load(r"C:\Users\sanch\Downloads\rightarm.png")
 bg_rect = bg_surf.get_rect(center = (325, 225))
 
 done = False
