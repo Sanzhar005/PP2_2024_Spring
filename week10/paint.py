@@ -1,164 +1,114 @@
-import pygame as pg 
-from random import randint, randrange
-pg.init()
+import pygame  
+pygame.init()  
 
-w, h, fps, level, step = 800, 700, 6, 0, 40 
-screen = pg.display.set_mode((w, h))
-pg.display.set_caption('Snake Game')
-is_running, lose = True, False
-clock = pg.time.Clock()
-score = pg.font.SysFont("Verdana", 20)
-surf = pg.Surface((390, 390), pg.SRCALPHA)
-bg = pg.image.load(r"C:\Users\sanch\Downloads\background.jpg")
-bg = pg.transform.scale(bg, (w, h))
-gameover = pg.image.load(r"C:\Users\sanch\Downloads\game_over.jpg")
-gameover = pg.transform.scale(gameover, (390, 390))
+fps = 5000  # установка фпс
+timer = pygame.time.Clock()  # создание объекта Clock для управления фпс
+WIDTH, HEIGHT = 800, 600  # размеры экрана
+active_size = 0  # изначальный размер активного инструмента
+active_color = 'white'  # изначальный цвет активного инструмента
+painting = []  # список для хранения рисунка
+current_tool = 'brush'  # изначально выбранный инструмент - кисть
 
-class Food:
-    def __init__(self):
-        # задаем рандомные координаты для еды в диапазоне игрового поля с шагом в 40
-        self.x = randrange(0, w, step)
-        self.y = randrange(0, h, step)
-        self.pic = pg.image.load(r"C:\Users\sanch\Downloads\cherry.png")
+screen = pygame.display.set_mode([WIDTH, HEIGHT])  # создание окна отображения с заданными размерами
+pygame.display.set_caption("paint")  # название окна
 
-    def draw(self):
-        screen.blit(self.pic, (self.x, self.y))
-
-    def draw2(self):
-        self.x = randrange(0, w, step)
-        self.y = randrange(0, h, step)
-
-class Snake:
-    def __init__(self):
-        self.speed = step
-        self.body = [[360, 360]] # изначальные координаты головы
-        self.dx = 0
-        self.dy = 0
-        self.score = 0
-        self.color = 'green'
+# функция для отрисовки меню с выбором цвета и размера кисти
+def draw_menu(color, size):
+    # отрисовка верхней панели меню
+    pygame.draw.rect(screen, 'gray', [0, 0, WIDTH, 70])
+    pygame.draw.line(screen, 'black', (0, 70), (WIDTH, 70))
     
-    def move(self, events):
-        for event in events:
-            if event.type == pg.KEYDOWN: # движение змейки по нажатию на клавиатуру
-                if event.key == pg.K_a and self.dx == 0: # чтобы при нажатии налево, змейка не двигалась вправо
-                    self.dx = -self.speed
-                    self.dy = 0
-                if event.key == pg.K_d and self.dx == 0:
-                    self.dx = self.speed
-                    self.dy = 0
-                if event.key == pg.K_w and self.dy == 0:
-                    self.dx = 0
-                    self.dy = -self.speed
-                if event.key == pg.K_s and self.dy == 0:
-                    self.dx = 0
-                    self.dy = self.speed
-
-        # передвигаем части тела змейки по х и у на предыдущие координаты
-        for i in range(len(self.body) - 1, 0, -1):
-            self.body[i][0] = self.body[i - 1][0] 
-            self.body[i][1] = self.body[i - 1][1]
-
-        # передвигаем голову змейки по х и у на следующие координаты
-        self.body[0][0] += self.dx 
-        self.body[0][1] += self.dy 
-
-    def draw(self):
-        for part in self.body:
-            pg.draw.rect(screen, self.color, (part[0], part[1], step, step))
+    # отрисовка кнопок для выбора размера кисти
+    xl_brush = pygame.draw.rect(screen, 'black', [10, 10, 50, 50])
+    pygame.draw.circle(screen, 'white', (35, 35), 20)
+    l_brush = pygame.draw.rect(screen, 'black', [70, 10, 50, 50])
+    pygame.draw.circle(screen, 'white', (95, 35), 15)
+    m_brush = pygame.draw.rect(screen, 'black', [130, 10, 50, 50])
+    pygame.draw.circle(screen, 'white', (155, 35), 10)
+    s_brush = pygame.draw.rect(screen, 'black', [190, 10, 50, 50])
+    pygame.draw.circle(screen, 'white', (215, 35), 5)
+    brush_list = [xl_brush, l_brush, m_brush, s_brush]  # список кнопок для выбора размера кисти
     
-    # проверяем когда змейка съедает еду
-    def collide_food(self, f:Food):
-        if self.body[0][0] == f.x and self.body[0][1] == f.y: # если координаты головы змейки совпадают с координатами еды
-            self.score += 1
-            self.body.append([1000, 1000]) 
+    # отрисовка кнопок для выбора цвета
+    pygame.draw.circle(screen, color, (400, 35), 30)
+    blue = pygame.draw.rect(screen, (0, 0, 255), [WIDTH - 35, 10, 25, 25])
+    red = pygame.draw.rect(screen, (255, 0, 0), [WIDTH - 35, 35, 25, 25])
+    green = pygame.draw.rect(screen, (0, 255, 0), [WIDTH - 60, 10, 25, 25])
+    yellow = pygame.draw.rect(screen, (255, 255, 0), [WIDTH - 60, 35, 25, 25])
+    teal = pygame.draw.rect(screen, (0, 255, 255), [WIDTH - 85, 10, 25, 25])
+    purple = pygame.draw.rect(screen, (255, 0, 255), [WIDTH - 85, 35, 25, 25])
+    white = pygame.draw.rect(screen, (255, 255, 255), [WIDTH - 110, 10, 25, 25])
+    black = pygame.draw.rect(screen, (0, 0, 0), [WIDTH - 110, 35, 25, 25])
+    circle_button = pygame.draw.rect(screen, 'black', [250, 10, 50, 50])
+    pygame.draw.circle(screen, 'white', (275, 35), 20)
+    rectangle_button = pygame.draw.rect(screen, 'black', [310, 10, 50, 50])
+    pygame.draw.rect(screen, 'white', [315, 15, 40, 40])
+    color_rect = [blue, red, green, yellow, teal, purple, white, black, circle_button, rectangle_button]
+    rgb_list = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (255, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 255), (0, 0, 0), None, None]
     
-    # заканчиваем игру, если голова змейки столкнеться со своим телом
-    def self_collide(self):
-        global is_running
-        if self.body[0] in self.body[1:]: # если голова змейки и входит в массив координат тела змейки
-            lose = True # запускаем цикл 'game_over' 
+    return brush_list, color_rect, rgb_list  # возвращение списков кнопок и соответствующих значений цветов
 
-    # проверяем чтобы еда не оказалась на теле змейки
-    def check_food(self, f:Food): 
-        if [f.x, f.y] in self.body: # если координаты еды входят в массив координат тела змейки
-            f.draw2() # заново рисуем еду
+# функция для отрисовки рисунка
+def draw_painting(paints):
+    for i in range(len(paints)):
+        if paints[i][0] == 'circle':  # если рисуем круг
+            pygame.draw.circle(screen, paints[i][1], paints[i][2], paints[i][3])  # отрисовка круга
+        elif paints[i][0] == 'rectangle':  # если рисуем прямоугольник
+            pygame.draw.rect(screen, paints[i][1], paints[i][2])  # отрисовка прямоугольника
+        else:  # если рисуем кистью
+            pygame.draw.circle(screen, paints[i][0], paints[i][1], paints[i][2])  # отрисовка круга
 
-
-class Wall:
-    def __init__(self, x, y):
-        self.x, self.y = x, y
-        self.pic = pg.image.load(r"C:\Users\sanch\Downloads\wall.png")
-
-
-    def draw(self):
-        screen.blit(self.pic, (self.x, self.y))
-
-# создаем объекты змейки и еды
-s = Snake()
-f = Food()
-
-# запускаем основной цикл
-while is_running:
-    clock.tick(fps)
-    events = pg.event.get()
-    for event in events:
-        if event.type == pg.QUIT:
-            is_running = False
+# основной игровой цикл
+running = True
+while running:
+    timer.tick(fps)  # управление фпс
+    
+    screen.fill("white")  # заполнение экрана белым цветом
+    mouse = pygame.mouse.get_pos()  # получение текущей позиции мыши
+    left_click = pygame.mouse.get_pressed()[0]  # получение состояния левой кнопки мыши
+    
+    # если нажата левая кнопка мыши и мышь находится в пределах области для рисования (ниже панели меню)
+    if left_click and mouse[1] > 70:
+        if current_tool == 'brush':  # если выбран инструмент "кисть"
+            painting.append((active_color, mouse, active_size))  # добавление точки в список рисунка
+        elif current_tool == 'circle':  # если выбран инструмент "круг"
+            painting.append(('circle', active_color, mouse, active_size*3))  # добавление круга в список рисунка
+        elif current_tool == 'rectangle':  # если выбран инструмент "прямоугольник"
+            rect_width = 4 * active_size
+            rect_height = 4 * active_size
+            rect_x = mouse[0] - active_size
+            rect_y = mouse[1] - active_size
+            painting.append(('rectangle', active_color, pygame.Rect(rect_x, rect_y, rect_width, rect_height)))  # добавление прямоугольника в список рисунка
+    
+    draw_painting(painting)  # отрисовка рисунка
+    
+    # отрисовка курсора кисти, если выбран инструмент "кисть"
+    if mouse[1] > 70 and current_tool == 'brush':
+        pygame.draw.circle(screen, active_color, mouse, active_size)
         
-    screen.blit(bg, (0, 0))
+    # отрисовка меню и получение списка кнопок и соответствующих значений цветов
+    brushes, colors, rgbs = draw_menu(active_color, active_size)
 
-    # прорисовываем стенки с помощью заранее написанных паттернов  
-    my_walls = open(f'wall{level}.txt', 'r').readlines() # читает каждую линию как отдельный лист
-    walls = []
-    for i, line in enumerate(my_walls): # проходимся по индексу и строке
-        for j, each in enumerate(line): # проходимся по каждому элементу в строке
-            if each == "+":
-                walls.append(Wall(j * step, i * step)) # добавляем каждый блок стенки в лист
+    # обработка событий
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:  # если событие - выход из программы
+            running = False  # завершение игрового цикла
+            
+        if event.type == pygame.MOUSEBUTTONDOWN:  # если нажата кнопка мыши
+            for i in range(len(brushes)):  # проверка каждой кнопки изменения размера кисти
+                if brushes[i].collidepoint(event.pos):  # если нажата кнопка изменения размера кисти
+                    active_size = 20 - (i * 5)  # изменение размера кисти в зависимости от выбранной кнопки
 
-    # вызываем методы классов
-    f.draw()
-    s.draw()
-    s.move(events) # нажать любую клавишу (a, s, d, w) чтобы начать игру
-    s.collide_food(f)
-    s.self_collide()
-    s.check_food(f)
+            for i in range(len(colors)):  # проверка каждой кнопки выбора цвета
+                if colors[i].collidepoint(event.pos):  # если нажата кнопка выбора цвета
+                    if rgbs[i] is not None:  # если выбран цвет из заданного набора
+                        active_color = rgbs[i]  # установка активного цвета
+                    else:  # если выбран инструмент
+                        if i == len(colors) - 2:  # если выбран инструмент "круг"
+                            current_tool = 'circle'  # установка текущего инструмента "круг"
+                        elif i == len(colors) - 1:  # если выбран инструмент "прямоугольник"
+                            current_tool = 'rectangle'  # установка текущего инструмента "прямоугольник"
+    
+    pygame.display.flip()  # обновление экрана
 
-    # высвечиваем текущие баллы и уровень на экран
-    counter = score.render(f'Score: {s.score}', True, 'black')
-    screen.blit(counter, (50, 50))
-    l = score.render(f'Level: {level}', True, 'black')
-    screen.blit(l, (50, 80))
-
-    # условие для перехода на следующий уровень
-    if s.score == 3:
-        level += 1 # увеличиваем уровень
-        level %= 4 
-        fps += 2 # увеличиваем скорость
-        s.score = 0 # новый счетчик для следующего уровня
-
-    # высвечиваем стенки на экран
-    for wall in walls:
-        wall.draw()
-        if f.x == wall.x and f.y == wall.y: # перерисовываем еду, если она оказалась на стенках
-            f.draw2()
-
-        if s.body[0][0] == wall.x and s.body[0][1] == wall.y: # останавливаем игру, если голова змейки столкнеться со стенкой
-            lose = True
-
-    # запускаем цикл 'game_over'
-    while lose:
-        clock.tick(fps)
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                is_running = False
-                lose = False   
-        surf.blit(gameover, (0, 0))
-        screen.blit(surf, (200, 200))
-        cntr = score.render(f'Your score is {s.score}', True, 'white')
-        screen.blit(cntr, (320, 405))
-        l = score.render(f'Your level is {level}', True, 'white')
-        screen.blit(l, (322, 435))
-        pg.display.flip()
-
-    pg.display.flip()
-pg.quit()
+pygame.quit()  # выход из pygame
