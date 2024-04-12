@@ -7,9 +7,9 @@ screen = pygame.display.set_mode((500, 200))
 pygame.display.set_caption("Music player")
 
 playlist = [
-    r"C:\Users\sanch\Downloads\V_X_V_PRiNCE_-_Asylym_66964833.mp3",
-    r"C:\Users\sanch\Downloads\Kajjrat_Nurtas_Nyusha_-_Almaty_Tn_64400710.mp3",
-    r"C:\Users\sanch\Downloads\Azis_-_Sen_Trope_63175699.mp3"
+    r"C:\Users\sanch\Downloads\Miyagi & Эндшпиль feat. Рем Дигга - I Got Love.mp3",
+    r"C:\Users\sanch\Downloads\Қайрат Нұртас & Нюша - Алматы тун.mp3",
+    r"C:\Users\sanch\Downloads\Hiro - Любимые два часа.mp3"
 ]
 
 current_track = 0
@@ -19,8 +19,20 @@ paused = False
 
 pygame.mixer.music.load(playlist[current_track])
 
+def toggle_pause():
+    global playing, paused
+    if playing and not paused:
+        pygame.mixer.music.pause()
+        paused = True
+    elif paused:
+        pygame.mixer.music.unpause()
+        paused = False
+    else:
+        pygame.mixer.music.play()
+        playing = True
+
 controls = {
-    pygame.K_SPACE: lambda: pygame.mixer.music.pause() if playing and not paused else pygame.mixer.music.unpause() if paused else pygame.mixer.music.play(),
+    pygame.K_SPACE: lambda: toggle_pause(),
     pygame.K_s: lambda: pygame.mixer.music.stop(),
     pygame.K_n: lambda: next_track(),
     pygame.K_p: lambda: prev_track()
